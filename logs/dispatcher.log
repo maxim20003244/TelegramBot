@@ -6,3 +6,5 @@
 2023-02-04 17:52:26 DEBUG UpdateProducerImpl:12 - 
 2023-02-04 17:53:01 DEBUG UpdateProducerImpl:12 - 
 2023-02-04 19:00:31 DEBUG UpdateProducerImpl:19 - hello 1
+2023-02-04 23:05:48 DEBUG UpdateProducerImpl:19 - hello
+2023-02-04 23:06:08 DEBUG UpdateProducerImpl:19 - hello

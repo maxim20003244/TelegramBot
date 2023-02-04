@@ -55,7 +55,7 @@ public class UpdateController {
 
     }
 
-    private void setUnsupportedMessageView(Update update) {
+    public void setUnsupportedMessageView(Update update) {
         var sendMessage = messageUtils.generateSendMessageWithText(update,
                 "Unsupported type message");
         setView(sendMessage);
@@ -67,7 +67,7 @@ public class UpdateController {
 
     }
 
-    private void setView(SendMessage sendMessage) {
+    public void setView(SendMessage sendMessage) {
         telegramBot.sendAnswerMessage(sendMessage);
     }
 
