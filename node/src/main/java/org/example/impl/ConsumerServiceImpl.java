@@ -2,6 +2,7 @@ package org.example.impl;
 
 import lombok.extern.log4j.Log4j;
 import org.example.service.ConsumerService;
+import org.example.service.MainService;
 import org.example.service.ProducerService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
@@ -13,22 +14,19 @@ import static org.example.RabbitQueue.*;
 @Service
 @Log4j
 public class ConsumerServiceImpl implements ConsumerService {
-    private final ProducerService producerService;
+    private final MainService mainService;
 
-    public ConsumerServiceImpl(ProducerService producerService) {
-        this.producerService = producerService;
+    public ConsumerServiceImpl(ProducerService producerService, MainService mainService) {
+        this.mainService = mainService;
+
     }
 
     @Override
     @RabbitListener(queues = TEXT_MESSAGE_UPDATE)
     public void consumeTextMessageUpdate(Update update) {
      log.debug("NODE : Text message is received!");
+     mainService.processTextMessage(update);
 
-     var message  = update.getMessage();
-     var sendMessage = new SendMessage();
-     sendMessage.setChatId(message.getChatId().toString());
-     sendMessage.setText("Hello from Node");
-     producerService.producerAnswer(sendMessage);
     }
 
     @Override
