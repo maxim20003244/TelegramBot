@@ -3,9 +3,12 @@ package org.example.impl;
 import lombok.extern.log4j.Log4j;
 import org.example.dao.AppUserDAO;
 import org.example.dao.RawDao;
+import org.example.entity.AppDocument;
 import org.example.entity.AppUser;
 import org.example.entity.RawData;
 
+import org.example.exceptions.UploadFileException;
+import org.example.service.FileService;
 import org.example.service.MainService;
 import org.example.service.ProducerService;
 import org.example.service.enums.ServiceCommands;
@@ -24,11 +27,13 @@ public class MainServiceImpl implements MainService {
    private final ProducerService producerService;
     private  final RawDao rawDao;
     private final AppUserDAO appUserDAO;
+    private final FileService fileService;
 
-    public MainServiceImpl(ProducerService producerService, RawDao rawDao, AppUserDAO appUserDAO) {
+    public MainServiceImpl(ProducerService producerService, RawDao rawDao, AppUserDAO appUserDAO, FileService fileService) {
         this.producerService = producerService;
         this.rawDao = rawDao;
         this.appUserDAO = appUserDAO;
+        this.fileService = fileService;
     }
 
     @Override
@@ -64,12 +69,20 @@ public class MainServiceImpl implements MainService {
         var chatId = update.getMessage().getChatId();
 
         if(isNotAllowToSendContent(chatId , appUser)) {
-          return;
-          //TODO add save for document
+            return;
         }
-       var  answer = "Document upload successful! Url for download : http://test.orgget-doc/777  ";
-        sendAnswer(answer , chatId);
-    }
+            try {
+                AppDocument doc = fileService.processDoc(update.getMessage());
+                var answer = "Document upload successful! Url for download : http://test.orgget-doc/777  ";
+                sendAnswer(answer, chatId);
+            } catch (UploadFileException ex) {
+                log.error(ex);
+                String error = " Can't upload file,please try again later";
+                sendAnswer(error, chatId);
+            }
+        }
+
+
 
     @Override
     public void processPhotoMessage(Update update) {
