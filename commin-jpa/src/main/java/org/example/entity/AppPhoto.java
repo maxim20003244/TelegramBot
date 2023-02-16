@@ -2,20 +2,25 @@ package org.example.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-
-@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "binary_content")
-public class BinaryContent {
+@Entity
+@Table(name = "app_photo")
+public class AppPhoto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private byte [] fileArrayOfByte;
+    private String telegramFileId;
+
+
+    @OneToOne
+    private BinaryContent binaryContent;
+
+    private Integer fileSize;
+
 }

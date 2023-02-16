@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j;
 import org.example.dao.AppUserDAO;
 import org.example.dao.RawDao;
 import org.example.entity.AppDocument;
+import org.example.entity.AppPhoto;
 import org.example.entity.AppUser;
 import org.example.entity.RawData;
 
@@ -94,8 +95,17 @@ public class MainServiceImpl implements MainService {
             return;
             //TODO add save for photo
         }
-        var  answer = "Photo upload successful! Url for download : http://test.orgget-photo/777  ";
-        sendAnswer(answer , chatId);
+        try {
+            AppPhoto appPhoto = fileService.processPhoto(update.getMessage());
+            var  answer = "Photo upload successful! Url for download : http://test.orgget-photo/777  ";
+            sendAnswer(answer , chatId);
+        }catch (UploadFileException ex){
+            log.error(ex);
+            String error = " Can't upload file,please try again later";
+            sendAnswer(error, chatId);
+
+        }
+
 
     }
 
@@ -114,7 +124,7 @@ public class MainServiceImpl implements MainService {
     }
 
 
-    private void sendAnswer(String output,Long chatId) {
+    private void sendAnswer(String output, Long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText(output);
