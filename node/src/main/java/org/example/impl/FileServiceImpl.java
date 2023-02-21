@@ -1,6 +1,7 @@
 package org.example.impl;
 
 import lombok.extern.log4j.Log4j;
+import org.example.CryptoTool;
 import org.example.dao.AppDocumentDAO;
 import org.example.dao.AppPhotoDAO;
 import org.example.dao.BinaryContentDAO;
@@ -11,6 +12,7 @@ import org.example.entity.BinaryContent;
 import org.example.exceptions.UploadFileException;
 import org.example.service.FileService;
 
+import org.example.service.enums.LinkType;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -32,6 +34,8 @@ public class FileServiceImpl implements FileService {
     private String token;
 @Value("${service.file_info.uri}")
     private String fileInfoUri;
+@Value("${link.address}")
+private String linkAddress;
 @Value("${service.file_storage.uri}")
     private String fileStorageUri;
 
@@ -39,8 +43,10 @@ public class FileServiceImpl implements FileService {
 private final AppDocumentDAO appDocumentDAO;
 private final BinaryContentDAO binaryContentDAO;
 private final AppPhotoDAO appPhotoDAO;
+private final CryptoTool cryptoTool;
 
-    public FileServiceImpl(AppDocumentDAO appDocumentDAO, BinaryContentDAO binaryContentDAO, AppPhotoDAO appPhotoDAO) {
+    public FileServiceImpl( AppDocumentDAO appDocumentDAO, BinaryContentDAO binaryContentDAO, AppPhotoDAO appPhotoDAO,CryptoTool cryptoTool) {
+        this.cryptoTool = cryptoTool;
         this.appDocumentDAO = appDocumentDAO;
         this.binaryContentDAO = binaryContentDAO;
         this.appPhotoDAO = appPhotoDAO;
@@ -53,13 +59,11 @@ private final AppPhotoDAO appPhotoDAO;
         ResponseEntity<String> response = getFilePath(fileId);
         if (response.getStatusCode() == HttpStatus.OK) {
             BinaryContent persistentBinaryContent = getPersistentBinaryContent(response);
-           // Document telegramDocument = telegramMessage.getDocument();
             AppDocument transientAppDoc = buildTransientAppDoc(telegramDoc, persistentBinaryContent);
             return appDocumentDAO.save(transientAppDoc);
         } else {
             throw new UploadFileException("Bad response from telegram service: " + response);
         }
-
     }
     @Override
     public AppPhoto processPhoto(Message telegramMessage) {
@@ -137,6 +141,7 @@ private final AppPhotoDAO appPhotoDAO;
 
 
 
+
     private ResponseEntity<String> getFilePath(String fileId) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -150,6 +155,11 @@ private final AppPhotoDAO appPhotoDAO;
                 token,fileId
         );
 
+    }
+    @Override
+    public String generateLink(Long docId, LinkType linkType) {
+        var hash = cryptoTool.hashOf(docId);
+        return "http://" + linkAddress + "/" + linkType + "?id=" + hash;
     }
 }
 

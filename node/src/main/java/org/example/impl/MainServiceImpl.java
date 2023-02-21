@@ -12,6 +12,7 @@ import org.example.exceptions.UploadFileException;
 import org.example.service.FileService;
 import org.example.service.MainService;
 import org.example.service.ProducerService;
+import org.example.service.enums.LinkType;
 import org.example.service.enums.ServiceCommands;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -74,7 +75,8 @@ public class MainServiceImpl implements MainService {
         }
             try {
                 AppDocument doc = fileService.processDoc(update.getMessage());
-                var answer = "Document upload successful! Url for download : http://test.orgget-doc/777  ";
+                String link = fileService.generateLink(doc.getId(), LinkType.GET_DOC);
+                var answer = "Document upload successful! Url for download : " + link;
                 sendAnswer(answer, chatId);
             } catch (UploadFileException ex) {
                 log.error(ex);
@@ -90,14 +92,14 @@ public class MainServiceImpl implements MainService {
         saveRawDate(update);
         var appUser = findOrSaveAppUser(update);
         var chatId = update.getMessage().getChatId();
-
-        if(isNotAllowToSendContent(chatId , appUser)) {
+        if (isNotAllowToSendContent(chatId, appUser)) {
             return;
-            //TODO add save for photo
         }
+
         try {
-            AppPhoto appPhoto = fileService.processPhoto(update.getMessage());
-            var  answer = "Photo upload successful! Url for download : http://test.orgget-photo/777  ";
+            AppPhoto photo = fileService.processPhoto(update.getMessage());
+            String link = fileService.generateLink(photo.getId(), LinkType.GET_PHOTO);
+            var  answer = "Photo upload successful! Url for download : " + link;
             sendAnswer(answer , chatId);
         }catch (UploadFileException ex){
             log.error(ex);
