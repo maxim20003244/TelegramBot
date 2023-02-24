@@ -16,6 +16,7 @@
         <module>rest-service</module>
         <module>rest-service</module>
         <module>common-utils</module>
+        <module>mail-service</module>
 
     </modules>
 
