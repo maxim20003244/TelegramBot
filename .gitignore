@@ -1,1 +1,2 @@
 dispatcher/src/main/resources/application.properties
+mail-service/src/main/resources/application.properties

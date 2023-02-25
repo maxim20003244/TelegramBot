@@ -9,6 +9,7 @@ import org.example.entity.AppUser;
 import org.example.entity.RawData;
 
 import org.example.exceptions.UploadFileException;
+import org.example.service.AppUserService;
 import org.example.service.FileService;
 import org.example.service.MainService;
 import org.example.service.ProducerService;
@@ -30,12 +31,15 @@ public class MainServiceImpl implements MainService {
     private  final RawDao rawDao;
     private final AppUserDAO appUserDAO;
     private final FileService fileService;
+    private  final AppUserService appUserService;
 
-    public MainServiceImpl(ProducerService producerService, RawDao rawDao, AppUserDAO appUserDAO, FileService fileService) {
+
+    public MainServiceImpl(ProducerService producerService, RawDao rawDao, AppUserDAO appUserDAO, FileService fileService, AppUserService appUserService) {
         this.producerService = producerService;
         this.rawDao = rawDao;
         this.appUserDAO = appUserDAO;
         this.fileService = fileService;
+        this.appUserService = appUserService;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class MainServiceImpl implements MainService {
         } else if(BASIC_STATE.equals(userState)){
             output = processServiceCommand(appUser, text);
         } else if (WAIT_FOR_EMAIL_STATE.equals(userState)) {
-         //TODO add email porcessing
+       output = appUserService.sendEmail(appUser,text);
 
         }else {
             log.error("Unknown user state: " + userState);
@@ -133,12 +137,12 @@ public class MainServiceImpl implements MainService {
         producerService.producerAnswer(sendMessage);
     }
 
-    private String processServiceCommand(AppUser appUser, String cmd) {
+    private String processServiceCommand(AppUser  appUser, String cmd) {
         var serviceCommand = ServiceCommands.fromValue(cmd);
         if(REGISTRATION.equals(serviceCommand)){
 
-            //TODO add registration
-            return "Temporally unavailable";
+
+            return  appUserService.registerUser(appUser) ;
         }else if(HELP.equals(serviceCommand)){
             return help();
             
@@ -152,9 +156,10 @@ public class MainServiceImpl implements MainService {
     }
 
     private String help() {
-        return "List available command :\n"
-                 + "/cancel - cancel execute command\n"
-                 + "/registration - register user";
+        return """
+                List available command :
+                /cancel - cancel execute command
+                /registration - register user""";
     }
 
     private String cancelProcess(AppUser appUser) {
@@ -165,20 +170,19 @@ public class MainServiceImpl implements MainService {
 
     private AppUser findOrSaveAppUser( Update update){
             User  telegramUser = update.getMessage().getFrom();
-        AppUser persistenAppUser = appUserDAO.findAppUserByTelegramUserId(telegramUser.getId());
-        if(persistenAppUser == null){
+        var optional = appUserDAO.findByTelegramUserId(telegramUser.getId());
+        if(optional.isEmpty() ){
             AppUser transientAppUser = AppUser.builder()
                     .telegramUserId(telegramUser.getId())
                     .userName(telegramUser.getUserName())
                     .firstName(telegramUser.getFirstName())
                     .lastName(telegramUser.getLastName())
-                    //TODO change value as default after added users;
-                    .isActive(true)
+                    .isActive(false )
                     .state(BASIC_STATE)
                     .build();
             return appUserDAO.save(transientAppUser);
         }
-  return persistenAppUser;
+  return optional.get() ;
         }
 
     private void saveRawDate(Update update) {
