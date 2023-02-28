@@ -11,12 +11,12 @@ import static org.example.RabbitQueue.*;
 
 @Component
 @Log4j
-public class UpdateController {
+public class UpdateProcessor {
     private TelegramBot telegramBot;
     private MessageUtils messageUtils;
     private final UpdateProducerImpl updateProducer;
 
-    public UpdateController(MessageUtils messageUtils, UpdateProducerImpl updateProducer) {
+    public UpdateProcessor(MessageUtils messageUtils, UpdateProducerImpl updateProducer) {
         this.messageUtils = messageUtils;
         this.updateProducer = updateProducer;
     }
